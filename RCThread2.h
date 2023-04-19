@@ -1,18 +1,17 @@
 //---------------------------------------------------------------------------
 
-#include <vcl.h>
-#pragma hdrstop
-
-#include "ReadClusterForm.h"
-#include "RCThread.h"
+#ifndef RCThread2H
+#define RCThread2H
 //---------------------------------------------------------------------------
-#pragma package(smart_init)
-#pragma link "VirtualTrees"
-#pragma resource "*.dfm"
-TForm1 *Form1;
+#include <System.Classes.hpp>
 //---------------------------------------------------------------------------
-__fastcall TForm1::TForm1(TComponent* Owner)
-	: TForm(Owner)
+class RCThread2 : public TThread
 {
-}
+private:
+protected:
+	void __fastcall Execute();
+public:
+	__fastcall RCThread2(bool CreateSuspended);
+};
 //---------------------------------------------------------------------------
+#endif
