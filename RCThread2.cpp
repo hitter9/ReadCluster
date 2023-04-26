@@ -39,8 +39,8 @@ void __fastcall RCThread2::Execute()
 	while (!Form1->RCT1->Finished)
 	{
 		sqlite3_bind_int(stmt, 1, Form1->RCT1->NumberCluster);
-		sqlite3_bind_text(stmt, 2, Form1->RCT1->Signature,
-			strlen(Form1->RCT1->Signature), NULL);
+		sqlite3_bind_text(stmt, 2, Form1->RCT1->FileType,
+			strlen(Form1->RCT1->FileType), NULL);
 		sqlite3_step(stmt);
 		sqlite3_reset(stmt);
 		ID++;
@@ -57,7 +57,7 @@ void __fastcall RCThread2::UpdateVST()
 	DataTree* datatree = (DataTree*)Form1->VirtualStringTree->GetNodeData(Node);
 	datatree->ID = ID;
 	datatree->NumberCluster = Form1->RCT1->NumberCluster;
-	datatree->FileType = Form1->RCT1->Signature;
+	datatree->FileType = Form1->RCT1->FileType;
 	Form1->VirtualStringTree->EndUpdate();
 }
 //---------------------------------------------------------------------------

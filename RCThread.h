@@ -9,9 +9,9 @@
 class RCThread : public TThread
 {
 private:
-	bool __fastcall isjpg(BYTE*);
-	bool __fastcall ispng(BYTE*);
-    bool __fastcall isbmp(BYTE*);
+	bool __fastcall isjpg(BYTE Signature[]);
+	bool __fastcall ispng(BYTE Signature[]);
+    bool __fastcall isbmp(BYTE Signature[]);
 	BYTE jpg[10]{0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46};
 	BYTE png[4]{0x89, 0x50, 0x4E, 0x47};
 	BYTE bmp[2]{0x42, 0x4D};
@@ -24,7 +24,7 @@ protected:
 	void __fastcall Execute();
 public:
 	ULONG NumberCluster;
-    const char *Signature;
+    const char *FileType;
 	__fastcall RCThread(bool CreateSuspended, std::wstring path);
 	void __fastcall UpdatePB();
 	void __fastcall EndOfThread();

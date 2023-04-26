@@ -8,31 +8,31 @@
 #include "RCThread2.h"
 #pragma package(smart_init)
 //---------------------------------------------------------------------------
-bool __fastcall RCThread::isjpg(BYTE Cluster[])
+bool __fastcall RCThread::isjpg(BYTE Signature[])
 {
 	for (int i = 0; i < sizeof(jpg); i++)
 	{
-		if (Cluster[i] != jpg[i])
+		if (Signature[i] != jpg[i])
 			return false;
 	}
 	return true;
 }
 
-bool __fastcall RCThread::ispng(BYTE Cluster[])
+bool __fastcall RCThread::ispng(BYTE Signature[])
 {
 	for (int i = 0; i < sizeof(png); i++)
 	{
-		if (Cluster[i] != png[i])
+		if (Signature[i] != png[i])
 			return false;
 	}
 	return true;
 }
 
-bool __fastcall RCThread::isbmp(BYTE Cluster[])
+bool __fastcall RCThread::isbmp(BYTE Signature[])
 {
 	for (int i = 0; i < sizeof(bmp); i++)
 	{
-		if (Cluster[i] != bmp[i])
+		if (Signature[i] != bmp[i])
 			return false;
 	}
 	return true;
@@ -64,7 +64,7 @@ void __fastcall RCThread::Execute()
 	int BlockM = 32;
 	int BlockSize = ClusterSize * BlockM;
 	Cluster = new BYTE[BlockSize];
-	BYTE Sign[10];
+	BYTE Signature[10];
 	for (NumberCluster = 0; NumberCluster < TotNumOfClusters;)
 	{
 		bool ReadResult = ReadFile(DiskOpen, Cluster, BlockSize,
@@ -75,27 +75,27 @@ void __fastcall RCThread::Execute()
 			Synchronize(&UpdatePB);
 		for (int i = 0; i < BlockSize; i += ClusterSize)
 		{
-			Signature = NULL;
+			FileType = NULL;
 			for (int ii = 0; ii < 10; ii++)
 			{
-				Sign[ii] = Cluster[i+ii];
+				Signature[ii] = Cluster[i+ii];
 			}
 			if (Form1->jpg->Checked)
 			{
-				if (isjpg(Sign))
-					Signature = ".jpg/.jpeg";
+				if (isjpg(Signature))
+					FileType = ".jpg/.jpeg";
 			}
 			if (Form1->png->Checked)
 			{
-				if (ispng(Sign))
-					Signature = ".png";
+				if (ispng(Signature))
+					FileType = ".png";
 			}
 			if (Form1->bmp->Checked)
 			{
-				if (isbmp(Sign))
-					Signature = ".bmp";
+				if (isbmp(Signature))
+					FileType = ".bmp";
 			}
-			if (Signature != NULL)
+			if (FileType != NULL)
 			{
 				Form1->RCT2->Resume();
 				Suspend();
