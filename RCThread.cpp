@@ -8,7 +8,7 @@
 #include "RCThread2.h"
 #pragma package(smart_init)
 //---------------------------------------------------------------------------
-bool __fastcall RCThread::isjpg(BYTE *Cluster)
+bool __fastcall RCThread::isjpg(BYTE Cluster[])
 {
 	for (int i = 0; i < sizeof(jpg); i++)
 	{
@@ -18,7 +18,7 @@ bool __fastcall RCThread::isjpg(BYTE *Cluster)
 	return true;
 }
 
-bool __fastcall RCThread::ispng(BYTE *Cluster)
+bool __fastcall RCThread::ispng(BYTE Cluster[])
 {
 	for (int i = 0; i < sizeof(png); i++)
 	{
@@ -28,7 +28,7 @@ bool __fastcall RCThread::ispng(BYTE *Cluster)
 	return true;
 }
 
-bool __fastcall RCThread::isbmp(BYTE *Cluster)
+bool __fastcall RCThread::isbmp(BYTE Cluster[])
 {
 	for (int i = 0; i < sizeof(bmp); i++)
 	{
@@ -61,35 +61,46 @@ void __fastcall RCThread::Execute()
 	LONG Period = 500;
 	SetWaitableTimer(Timer, &TimeResponse, Period, NULL, NULL, false);
 	DWORD ReadedBytes;
-	Cluster = new BYTE[ClusterSize];
-	for (NumberCluster = 0; NumberCluster < TotNumOfClusters; NumberCluster++)
+	int BlockM = 32;
+	int BlockSize = ClusterSize * BlockM;
+	Cluster = new BYTE[BlockSize];
+	BYTE Sign[10];
+	for (NumberCluster = 0; NumberCluster < TotNumOfClusters;)
 	{
-		Signature = NULL;
-		bool ReadResult = ReadFile(DiskOpen, Cluster, ClusterSize,
+		bool ReadResult = ReadFile(DiskOpen, Cluster, BlockSize,
 			&ReadedBytes, NULL);
-		if (!ReadResult || ReadedBytes != ClusterSize)
+		if (!ReadResult || ReadedBytes != BlockSize)
 			Terminate();
 		if (WaitForSingleObject(Timer, 0) == WAIT_OBJECT_0)
 			Synchronize(&UpdatePB);
-		if (Form1->jpg->Checked)
+		for (int i = 0; i < BlockSize; i += ClusterSize)
 		{
-			if (isjpg(Cluster))
-				Signature = ".jpg/.jpeg";
-		}
-		if (Form1->png->Checked)
-		{
-			if (ispng(Cluster))
-				Signature = ".png";
-		}
-		if (Form1->bmp->Checked)
-		{
-			if (isbmp(Cluster))
-				Signature = ".bmp";
-		}
-		if (Signature != NULL)
-		{
-			Form1->RCT2->Resume();
-			Suspend();
+			Signature = NULL;
+			for (int ii = 0; ii < 10; ii++)
+			{
+				Sign[ii] = Cluster[i+ii];
+			}
+			if (Form1->jpg->Checked)
+			{
+				if (isjpg(Sign))
+					Signature = ".jpg/.jpeg";
+			}
+			if (Form1->png->Checked)
+			{
+				if (ispng(Sign))
+					Signature = ".png";
+			}
+			if (Form1->bmp->Checked)
+			{
+				if (isbmp(Sign))
+					Signature = ".bmp";
+			}
+			if (Signature != NULL)
+			{
+				Form1->RCT2->Resume();
+				Suspend();
+			}
+			NumberCluster++;
 		}
 	}
 	Synchronize(&EndOfThread);

@@ -72,6 +72,9 @@ void __fastcall TForm1::StopButtonClick(TObject *Sender)
 		RCT1->Free();
 	FindButton->Enabled = true;
 	StopButton->Enabled = false;
+	jpg->Enabled = true;
+	png->Enabled = true;
+	bmp->Enabled = true;
 	InfoLabel->Caption = "Поиск остановлен";
     ProgressBar->Visible = false;
 }
