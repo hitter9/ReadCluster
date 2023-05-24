@@ -46,6 +46,7 @@ __published:	// IDE-managed Components
 
 private:	// User declarations
 public:		// User declarations
+    bool NeedStop;
 	std::wstring path;
 	RCThread *RCT1;
     RCThread2 *RCT2;

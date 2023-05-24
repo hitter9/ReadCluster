@@ -43,9 +43,10 @@ void __fastcall TForm1::FindButtonClick(TObject *Sender)
 	InfoLabel->Caption = "Идет поиск...";
 	jpg->Enabled = false;
 	png->Enabled = false;
-    bmp->Enabled = false;
+	bmp->Enabled = false;
+    NeedStop = false;
 	RCT1 = new RCThread(false, path);
-	RCT2 = new RCThread2(true);
+	RCT2 = new RCThread2(false);
 }
 //---------------------------------------------------------------------------
 void __fastcall TForm1::VirtualStringTreeGetText(TBaseVirtualTree *Sender, PVirtualNode Node,
@@ -66,10 +67,8 @@ void __fastcall TForm1::VirtualStringTreeGetText(TBaseVirtualTree *Sender, PVirt
 //---------------------------------------------------------------------------
 void __fastcall TForm1::StopButtonClick(TObject *Sender)
 {
-	if (!RCT2->Finished)
-		RCT2->Free();
-	if (!RCT1->Finished)
-		RCT1->Free();
+	if (!RCT2->Finished || !RCT1->Finished)
+		NeedStop = true;
 	FindButton->Enabled = true;
 	StopButton->Enabled = false;
 	jpg->Enabled = true;
@@ -81,10 +80,8 @@ void __fastcall TForm1::StopButtonClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ExitButtonClick(TObject *Sender)
 {
-	if (!RCT2->Finished)
-		RCT2->Free();
-	if (!RCT1->Finished)
-		RCT1->Free();
+	if (!RCT2->Started || !RCT1->Started)
+		NeedStop = true;
 	ExitProcess(0);
 }
 //---------------------------------------------------------------------------

@@ -4,7 +4,10 @@
 #define RCThreadH
 //---------------------------------------------------------------------------
 #include <System.Classes.hpp>
+#include <chrono>
 #include "RCThread2.h"
+//---------------------------------------------------------------------------
+using namespace std;
 //---------------------------------------------------------------------------
 class RCThread : public TThread
 {
@@ -16,18 +19,24 @@ private:
 	BYTE png[4]{0x89, 0x50, 0x4E, 0x47};
 	BYTE bmp[2]{0x42, 0x4D};
     HANDLE DiskOpen;
+    const char *ErrorMessage;
 	HANDLE Timer;
 	ULONG TotNumOfClusters;
 	int ClusterSize;
 	BYTE *Cluster;
+	string ressec;
+    void __fastcall ShowErrMsg();
+	void __fastcall UpdatePB();
+	void __fastcall EndOfThread();
 protected:
 	void __fastcall Execute();
 public:
 	ULONG NumberCluster;
-    const char *FileType;
-	__fastcall RCThread(bool CreateSuspended, std::wstring path);
-	void __fastcall UpdatePB();
-	void __fastcall EndOfThread();
+	ULONG NumClus;
+	HANDLE SecThread;
+	const char *FileType;
+	const char *FiType;
+	__fastcall RCThread(bool CreateSuspended, wstring path);
     __fastcall ~RCThread();
 };
 //---------------------------------------------------------------------------
