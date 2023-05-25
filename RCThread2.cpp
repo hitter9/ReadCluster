@@ -56,19 +56,22 @@ void __fastcall RCThread2::Execute()
 	{
 		if (Form1->NeedStop)
 			Free();
-		WaitForSingleObject(Form1->RCT1->SecThread, INFINITE);
-		NCluster = Form1->RCT1->NumClus;
-		FType = Form1->RCT1->FiType;
-		sqlite3_bind_int(stmt, 1, NCluster);
-		sqlite3_bind_text(stmt, 2, FType, strlen(FType), NULL);
-		sqlite3_step(stmt);
-		sqlite3_reset(stmt);
-		ID++;
-		Synchronize(&UpdateVST);
-		ResetEvent(Form1->RCT1->SecThread);
-		if (Form1->RCT1->Suspended)
-			Form1->RCT1->Resume();
+		if (WaitForSingleObject(Form1->RCT1->SecThread, 100) == 0)
+		{
+			NCluster = Form1->RCT1->NumClus;
+			FType = Form1->RCT1->FiType;
+			sqlite3_bind_int(stmt, 1, NCluster);
+			sqlite3_bind_text(stmt, 2, FType, strlen(FType), NULL);
+			sqlite3_step(stmt);
+			sqlite3_reset(stmt);
+			ID++;
+			Synchronize(&UpdateVST);
+			ResetEvent(Form1->RCT1->SecThread);
+			if (Form1->RCT1->Suspended)
+				Form1->RCT1->Resume();
+		}
 	}
+	Form1->NeedStop = true;
 }
 //---------------------------------------------------------------------------
 void __fastcall RCThread2::ShowErrMsg()

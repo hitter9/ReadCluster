@@ -127,6 +127,7 @@ void __fastcall RCThread::Execute()
 	chrono::duration<double> sec = end - start;
 	ressec = "Готово! Затраченное время: " + to_string(sec.count()) + " сек";
 	Synchronize(&EndOfThread);
+    Form1->NeedStop = true;
 }
 //---------------------------------------------------------------------------
 void __fastcall RCThread::ShowErrMsg()
