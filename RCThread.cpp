@@ -90,7 +90,6 @@ void __fastcall RCThread::Execute()
 				FileType = ".bmp";
 			entry = {NumberCluster + Add, FileType};
 			TSQ.push(entry);
-			delete Current;
 		}
 		delete IBID;
 	}
