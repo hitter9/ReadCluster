@@ -80,7 +80,7 @@ void __fastcall TForm1::StopButtonClick(TObject *Sender)
 //---------------------------------------------------------------------------
 void __fastcall TForm1::ExitButtonClick(TObject *Sender)
 {
-	if (!RCT2->Started || !RCT1->Started)
+	if ((RCT2 && RCT2->Started) || (RCT1 && RCT1->Started))
 		NeedStop = true;
 	ExitProcess(0);
 }

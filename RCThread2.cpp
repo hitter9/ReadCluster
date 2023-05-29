@@ -8,7 +8,6 @@
 #include "RCThread2.h"
 #pragma package(smart_init)
 //---------------------------------------------------------------------------
-
 __fastcall RCThread2::RCThread2(bool CreateSuspended)
 	: TThread(CreateSuspended)
 {
@@ -20,14 +19,14 @@ __fastcall RCThread2::RCThread2(bool CreateSuspended)
 	{
 		ErrorMessage = "Ошибка подготовки запроса CREATE TABLE";
 		Synchronize(&ShowErrMsg);
-		Free();
+		Terminate();
 	}
 	result = sqlite3_step(stmt);
 	if (result != SQLITE_DONE)
 	{
 		ErrorMessage = "Ошибка создания таблицы";
 		Synchronize(&ShowErrMsg);
-		Free();
+		Terminate();
 	}
 	int ClearTable = sqlite3_exec(DB,"DELETE FROM list", NULL, NULL, &errmsg);
 	int ClearID = sqlite3_exec(DB,"DELETE FROM sqlite_sequence where \
@@ -36,7 +35,7 @@ __fastcall RCThread2::RCThread2(bool CreateSuspended)
 	{
 		ErrorMessage = "Ошибка очистки таблицы";
 		Synchronize(&ShowErrMsg);
-		Free();
+		Terminate();
 	}
 }
 //---------------------------------------------------------------------------
@@ -50,33 +49,32 @@ void __fastcall RCThread2::Execute()
 	{
 		ErrorMessage = "Ошибка подготовки запроса INSERT";
 		Synchronize(&ShowErrMsg);
-		Free();
+		Terminate();
 	}
-	while (!Form1->RCT1->Finished)
+	pair <ULONG, const char *> entry;
+	while (!Form1->RCT1->Finished || !Form1->RCT1->TSQ.empty())
 	{
 		if (Form1->NeedStop)
 			Free();
-		if (WaitForSingleObject(Form1->RCT1->SecThread, 100) == 0)
+		entry = Form1->RCT1->TSQ.frontpop();
+		if (entry.first != NULL && entry.second != NULL)
 		{
-			NCluster = Form1->RCT1->NumClus;
-			FType = Form1->RCT1->FiType;
+			NCluster = entry.first;
+			FType = entry.second;
+			ID++;
 			sqlite3_bind_int(stmt, 1, NCluster);
 			sqlite3_bind_text(stmt, 2, FType, strlen(FType), NULL);
 			sqlite3_step(stmt);
 			sqlite3_reset(stmt);
-			ID++;
 			Synchronize(&UpdateVST);
-			ResetEvent(Form1->RCT1->SecThread);
-			if (Form1->RCT1->Suspended)
-				Form1->RCT1->Resume();
 		}
 	}
-	Form1->NeedStop = true;
 }
 //---------------------------------------------------------------------------
 void __fastcall RCThread2::ShowErrMsg()
 {
-	Form1->ProgressBar->Enabled = false;
+    Form1->NeedStop = true;
+	Form1->ProgressBar->Visible = false;
 	Form1->InfoLabel->Caption = ErrorMessage;
 	Form1->StopButton->Enabled = false;
 	Form1->FindButton->Enabled = true;
