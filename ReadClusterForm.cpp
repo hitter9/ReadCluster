@@ -36,6 +36,7 @@ void __fastcall TForm1::ChooseVolumeSelect(TObject *Sender)
 void __fastcall TForm1::FindButtonClick(TObject *Sender)
 {
     VirtualStringTree->Clear();
+    ChooseVolume->Enabled = false;
 	StopButton->Enabled = true;
 	FindButton->Enabled = false;
 	ProgressBar->Visible = true;
@@ -69,6 +70,7 @@ void __fastcall TForm1::StopButtonClick(TObject *Sender)
 {
 	if (!RCT2->Finished || !RCT1->Finished)
 		NeedStop = true;
+    ChooseVolume->Enabled = true;
 	FindButton->Enabled = true;
 	StopButton->Enabled = false;
 	jpg->Enabled = true;

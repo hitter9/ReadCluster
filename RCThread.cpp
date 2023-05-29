@@ -8,37 +8,6 @@
 #include "RCThread2.h"
 #pragma package(smart_init)
 //---------------------------------------------------------------------------
-bool __fastcall RCThread::isjpg(BYTE Signature[])
-{
-	for (int i = 0; i < sizeof(jpg); i++)
-	{
-		if (Signature[i] != jpg[i])
-			return false;
-	}
-	return true;
-}
-
-bool __fastcall RCThread::ispng(BYTE Signature[])
-{
-	for (int i = 0; i < sizeof(png); i++)
-	{
-		if (Signature[i] != png[i])
-			return false;
-	}
-	return true;
-}
-
-bool __fastcall RCThread::isbmp(BYTE Signature[])
-{
-
-	for (int i = 0; i < sizeof(bmp); i++)
-	{
-		if (Signature[i] != bmp[i])
-			return false;
-	}
-	return true;
-}
-//---------------------------------------------------------------------------
 __fastcall RCThread::RCThread(bool CreateSuspended, wstring path)
 	: TThread(CreateSuspended)
 {
@@ -65,33 +34,35 @@ __fastcall RCThread::RCThread(bool CreateSuspended, wstring path)
 	ClusterSize = FS->ClusterSize;
 	TotNumOfClusters = FS->TotNumOfClusters;
 	StartOffset = FS->StartOffset;
+	delete FS;
 	Timer = CreateWaitableTimer(NULL, false, NULL);
-    delete FS;
 }
 //---------------------------------------------------------------------------
 void __fastcall RCThread::Execute()
 {
 	FreeOnTerminate = true;
 	chrono::time_point start = chrono::system_clock::now();
-	int NumClusAdd;
 	if (StartOffset.QuadPart != 0)
-		NumClusAdd = 2;
+		NumberCluster = 2;
 	else
-		NumClusAdd = 0;
+		NumberCluster = 0;
 	LARGE_INTEGER TimeResponse = { 0 };
 	LONG Period = 500;
 	SetWaitableTimer(Timer, &TimeResponse, Period, NULL, NULL, false);
 	DWORD ReadedBytes;
 	int BlockM = 131072 / ClusterSize;
 	int BlockSize = ClusterSize * BlockM;
-	Cluster = new BYTE[BlockSize];
+	Block = new BYTE[BlockSize];
 	BYTE Signature[10];
 	pair <ULONG, const char *> entry;
 	SetFilePointer(DiskOpen, StartOffset.LowPart,
 		&StartOffset.HighPart, FILE_BEGIN);
-	for (NumberCluster = 0; NumberCluster < TotNumOfClusters;)// NumberCluster += BlockM)
+	for (NumberCluster; NumberCluster < TotNumOfClusters;
+		NumberCluster += BlockM)
 	{
-		bool ReadResult = ReadFile(DiskOpen, Cluster, BlockSize,
+		if (Form1->NeedStop)
+			Free();
+		bool ReadResult = ReadFile(DiskOpen, Block, BlockSize,
 			&ReadedBytes, NULL);
 		if (!ReadResult)
 		{
@@ -103,55 +74,25 @@ void __fastcall RCThread::Execute()
 			Terminate();
 		if (WaitForSingleObject(Timer, 0) == WAIT_OBJECT_0)
 			Synchronize(&UpdatePB);
-		for (int i = 0; i < BlockSize; i += ClusterSize, NumberCluster++)
+		BlockIterator *IBID =
+			new ImageBlockIteratorDecorator(*Block, BlockSize, ClusterSize);
+		for (IBID->First(); !IBID->IsDone(); IBID->Next())
 		{
-			if (Form1->NeedStop)
-				Free();
 			FileType = NULL;
-			for (int ii = 0; ii < sizeof(Signature); ii++)
-			{
-				Signature[ii] = Cluster[i + ii];
-			}
-			if (Form1->jpg->Checked)
-			{
-				if (isjpg(Signature))
-					FileType = ".jpg/.jpeg";
-			}
-			if (Form1->png->Checked)
-			{
-				if (ispng(Signature))
-					FileType = ".png";
-			}
-			if (Form1->bmp->Checked)
-			{
-				if (isbmp(Signature))
-					FileType = ".bmp";
-			}
-			if (FileType != NULL)
-			{
-                entry = {NumberCluster + NumClusAdd, FileType};
-				TSQ.push(entry);
-			}
+			BYTE *Current = IBID->GetCurrent();
+			int Add = Current[0];
+			int Type = Current[1];
+			if (Type == 1 && Form1->jpg->Checked)
+				FileType = ".jpg/.jpeg";
+			if (Type == 2 && Form1->png->Checked)
+				FileType = ".png";
+			if (Type == 3 && Form1->bmp->Checked)
+				FileType = ".bmp";
+			entry = {NumberCluster + Add, FileType};
+			TSQ.push(entry);
+			delete Current;
 		}
-//		IBID = new ImageBlockIteratorDecorator(*Cluster, BlockSize, ClusterSize);
-//		for (IBID->First(); !IBID->IsDone(); IBID->Next())
-//		{
-//			if (Form1->NeedStop)
-//				Free();
-//			FileType = NULL;
-//			BYTE *Current = IBID->GetCurrent();
-//			int Add = Current[0];
-//			int Type = Current[1];
-//			if (Type == 1 && Form1->jpg->Checked)
-//				FileType = ".jpg/.jpeg";
-//			if (Type == 2 && Form1->png->Checked)
-//				FileType = ".png";
-//			if (Type == 3 && Form1->bmp->Checked)
-//				FileType = ".bmp";
-//			entry = {NumberCluster + NumClusAdd + Add, FileType};
-//			TSQ.push(entry);
-//			delete Current;
-//		}
+		delete IBID;
 	}
 	chrono::time_point end = chrono::system_clock::now();
 	chrono::duration<double> sec = end - start;
@@ -164,6 +105,7 @@ void __fastcall RCThread::ShowErrMsg()
 	Form1->NeedStop = true;
 	Form1->ProgressBar->Visible = false;
 	Form1->InfoLabel->Caption = ErrorMessage;
+    Form1->ChooseVolume->Enabled = true;
 	Form1->StopButton->Enabled = false;
 	Form1->FindButton->Enabled = true;
 	Form1->jpg->Enabled = true;
@@ -180,6 +122,7 @@ void __fastcall RCThread::EndOfThread()
 {
 	Form1->ProgressBar->Position = 100;
 	Form1->InfoLabel->Caption = ResSec.c_str();
+    Form1->ChooseVolume->Enabled = true;
 	Form1->StopButton->Enabled = false;
 	Form1->FindButton->Enabled = true;
 	Form1->jpg->Enabled = true;
@@ -191,7 +134,6 @@ __fastcall RCThread::~RCThread()
 {
 	CloseHandle(DiskOpen);
 	CloseHandle(Timer);
-	delete[] Cluster;
-    delete IBID;
+	delete[] Block;
 }
 //---------------------------------------------------------------------------

@@ -131,6 +131,7 @@ public:
 			StartOffset = FS->StartOffset;
 			break;
 		default:
+            FS = 0;
 			ErrorMessage = "Файловая система не поддерживается";
 		}
 	}

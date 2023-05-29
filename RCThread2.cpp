@@ -76,6 +76,7 @@ void __fastcall RCThread2::ShowErrMsg()
     Form1->NeedStop = true;
 	Form1->ProgressBar->Visible = false;
 	Form1->InfoLabel->Caption = ErrorMessage;
+	Form1->ChooseVolume->Enabled = true;
 	Form1->StopButton->Enabled = false;
 	Form1->FindButton->Enabled = true;
 	Form1->jpg->Enabled = true;

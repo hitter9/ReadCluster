@@ -11,14 +11,13 @@ using namespace std;
 class BlockIterator
 {
 private:
-
-protected:
-	BYTE *BL;
-	BYTE *CL;
 	int BSize;
 	int CSize;
 	int SSize;
 	int Position;
+protected:
+	BYTE *BL;
+	BYTE *CL;
 public:
 	BlockIterator(BYTE &Block, int BlockSize, int ClusterSize)
 	{
@@ -51,7 +50,7 @@ public:
 			return true;
 		else return false;
 	};
-	~BlockIterator()
+	virtual ~BlockIterator()
 	{
 		delete[] CL;
 	};
@@ -60,11 +59,10 @@ public:
 class ImageBlockIteratorDecorator : public BlockIterator
 {
 private:
-	BlockIterator *BI;
 	BYTE *CurrentCluster;
-	BYTE jpg[10]{ 0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46 };
-	BYTE png[4]{ 0x89, 0x50, 0x4E, 0x47 };
-	BYTE bmp[2]{ 0x42, 0x4D };
+	BYTE jpg[10]{0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46};
+	BYTE png[4]{0x89, 0x50, 0x4E, 0x47};
+	BYTE bmp[2]{0x42, 0x4D};
 	bool IsJPG(BYTE Signature[])
 	{
 		for (int i = 0; i < sizeof(jpg); i++)
@@ -92,22 +90,18 @@ private:
 		}
 		return true;
 	};
-protected:
-
 public:
 	ImageBlockIteratorDecorator(BYTE &Block, int BlockSize, int ClusterSize)
-		: BlockIterator(Block, BlockSize, ClusterSize)
-	{
-		BI = new BlockIterator(Block, BlockSize, ClusterSize);
-	};
+		: BlockIterator(Block, BlockSize, ClusterSize) {};
 	virtual void First()
 	{
 		CurrentCluster = new BYTE[2];
 		CurrentCluster[0] = 0;
 		CurrentCluster[1] = 0;
-		for (BI->First(); !BI->IsDone(); BI->Next(), CurrentCluster[0]++)
+		for (BlockIterator::First(); !BlockIterator::IsDone();
+			BlockIterator::Next(), CurrentCluster[0]++)
 		{
-			CL = BI->GetCurrent();
+			CL = BlockIterator::GetCurrent();
 			if (IsJPG(CL))
 			{
 				CurrentCluster[1] = 1;
@@ -127,10 +121,11 @@ public:
 	};
 	virtual void Next()
 	{
-		BI->Next();
-		for (; !BI->IsDone(); BI->Next(), CurrentCluster[0]++)
+		BlockIterator::Next();
+		for (; !BlockIterator::IsDone(); BlockIterator::Next(),
+			CurrentCluster[0]++)
 		{
-			CL = BI->GetCurrent();
+			CL = BlockIterator::GetCurrent();
 			if (IsJPG(CL))
 			{
 				CurrentCluster[0]++;
@@ -157,12 +152,11 @@ public:
 	};
 	virtual bool IsDone()
 	{
-		return BI->IsDone();
+		return BlockIterator::IsDone();
 	};
 	virtual ~ImageBlockIteratorDecorator()
 	{
 		delete[] CurrentCluster;
-		delete BI;
 	};
 };
 //---------------------------------------------------------------------------
