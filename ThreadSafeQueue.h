@@ -6,6 +6,7 @@
 #include <Windows.h>
 #include <queue>
 #include <utility>
+#include <mutex>
 //---------------------------------------------------------------------------
 using namespace std;
 //---------------------------------------------------------------------------
@@ -14,9 +15,11 @@ class ThreadSafeQueue
 private:
 	typedef pair<ULONG, const char*> entry;
 	queue<entry> rawQueue;
+	mutex m;
 public:
 	entry frontpop()
 	{
+		lock_guard<mutex> lock(m);
 		pair<ULONG, const char*> front_value (NULL, NULL);
 		if(!rawQueue.empty())
 		{
@@ -27,6 +30,7 @@ public:
 	};
 	void push(entry val)
 	{
+		lock_guard<mutex> lock(m);
 		rawQueue.push(val);
 	};
 	bool empty()

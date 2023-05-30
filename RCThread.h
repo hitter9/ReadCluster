@@ -6,7 +6,6 @@
 #include <System.Classes.hpp>
 #include <chrono>
 #include "GetFS.h"
-#include "ThreadSafeQueue.h"
 #include "ImageBlockIteratorDecorator.h"
 //---------------------------------------------------------------------------
 using namespace std;
@@ -30,7 +29,6 @@ private:
 protected:
 	void __fastcall Execute();
 public:
-	ThreadSafeQueue TSQ;
 	__fastcall RCThread(bool CreateSuspended, wstring path);
     __fastcall ~RCThread();
 };

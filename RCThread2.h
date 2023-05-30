@@ -5,6 +5,7 @@
 //---------------------------------------------------------------------------
 #include <System.Classes.hpp>
 #include "sqlite3.h"
+#include "ThreadSafeQueue.h"
 //---------------------------------------------------------------------------
 class RCThread2 : public TThread
 {
@@ -21,6 +22,7 @@ private:
 protected:
 	void __fastcall Execute();
 public:
+	ThreadSafeQueue TSQ;
 	__fastcall RCThread2(bool CreateSuspended);
     __fastcall ~RCThread2();
 };

@@ -52,11 +52,11 @@ void __fastcall RCThread2::Execute()
 		Terminate();
 	}
 	pair <ULONG, const char *> entry;
-	while (!Form1->RCT1->Finished || !Form1->RCT1->TSQ.empty())
+	while (!Form1->RCT1->Finished || !TSQ.empty())
 	{
 		if (Form1->NeedStop)
 			Free();
-		entry = Form1->RCT1->TSQ.frontpop();
+		entry = TSQ.frontpop();
 		if (entry.first != NULL && entry.second != NULL)
 		{
 			NCluster = entry.first;

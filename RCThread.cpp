@@ -89,7 +89,7 @@ void __fastcall RCThread::Execute()
 			if (Type == 3 && Form1->bmp->Checked)
 				FileType = ".bmp";
 			entry = {NumberCluster + Add, FileType};
-			TSQ.push(entry);
+			Form1->RCT2->TSQ.push(entry);
 		}
 		delete IBID;
 	}
